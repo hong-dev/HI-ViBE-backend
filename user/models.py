@@ -16,8 +16,8 @@ class User(models.Model):
     email       = models.CharField(max_length = 50)
     image       = models.URLField(max_length = 2000)
     gender      = models.CharField(max_length = 5)
-    birthday    = models.DateField()
-    expiry_date = models.DateField()
+    birthday    = models.DateField(null = True)
+    expiry_date = models.DateField(null = True)
     created_at  = models.DateTimeField(auto_now_add = True)
     updated_at  = models.DateTimeField(auto_now = True)
 

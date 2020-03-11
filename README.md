@@ -17,4 +17,4 @@
 # API Documentation
 
 # Database Modeling
-![Modeling using aquery](https://user-images.githubusercontent.com/53142539/76323612-4541c000-6328-11ea-8184-f9a93c09597b.png)
+![Modeling using aquery](https://user-images.githubusercontent.com/53142539/76415631-e12d0380-63dc-11ea-870f-314514a162de.png)
