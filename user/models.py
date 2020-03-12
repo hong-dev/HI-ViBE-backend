@@ -1,4 +1,4 @@
-from music.models import Genre, Artist, Album, Music, Station
+from music.models import Genre, Artist, Album, Music, Station, Theme
 
 from django.db import models
 
@@ -17,7 +17,8 @@ class User(models.Model):
     image       = models.URLField(max_length = 2000)
     gender      = models.CharField(max_length = 5)
     birthday    = models.DateField(null = True)
-    expiry_date = models.DateField(null = True)
+    expiry_date = models.DurationField(null = True)
+    theme       = models.ForeignKey(Theme, on_delete = models.SET_NULL, null = True)
     created_at  = models.DateTimeField(auto_now_add = True)
     updated_at  = models.DateTimeField(auto_now = True)
 
