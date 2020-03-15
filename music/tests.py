@@ -4,10 +4,16 @@ from .models import (
     Station,
     Theme,
     StationTheme,
+    Music,
     Magazine,
     MusicMagazine,
     News,
     Recommendation,
+    RecommendationMusic,
+    StationMusic,
+    ArtistMusic,
+    Genre,
+    ArtistGenre,
     Album,
     ArtistAlbum,
     Artist
@@ -122,7 +128,7 @@ class StationThemeTest(TestCase):
 class MagazineTest(TestCase):
     def setUp(self):
         client = Client()
-        Magazine.objects.create(    
+        Magazine.objects.create(
             id                = 1,
             badge             = "https://music-phinf.pstatic.net/20190702_287/1562066500033t4gp0_PNG/icon_pick.png",
             release_date      = "2020-03-10",
@@ -149,7 +155,102 @@ class MagazineTest(TestCase):
                  ]
             }
         )
+
+class RecommendationMusicTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Recommendation.objects.create(
+            id          = 1,
+            title       = "rec_title1",
+            sub_title   = "rec_sub_title1",
+            main_image  = "main_image1",
+            description = "rec_description1"
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistMusic.objects.create(
+            artist = Artist.objects.get(id=1),
+            music  = Music.objects.get(id=1),
+        )
+
+        RecommendationMusic.objects.create(
+            recommendation = Recommendation.objects.get(id=1),
+            music          = Music.objects.get(id=1),
+        )
+
+    def tearDown(self):
+        Music.objects.all().delete()
+        Album.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+        Recommendation.objects.all().delete()
+        RecommendationMusic.objects.all().delete()
+
+    def test_recommendation_music_get_success(self):
+        client = Client()
+        response = client.get('/music/recommendation_music/1')
+        self.assertEqual(response.json(),
+            {
+                'recommendation': {
+                    'recommendation__title'       : 'rec_title1',
+                    'recommendation__sub_title'   : 'rec_sub_title1',
+                    'recommendation__main_image'  : 'main_image1',
+                    'recommendation__description' : 'rec_description1'
+                },
+                'music_list': [{
+                    'music_id'     : 1,
+                    'music_name'   : 'ON',
+                    'track_number' : 1,
+                    'album_id'     : 1,
+                    'album_image'  : 'album_img1',
+                    'album_name'   : '방탄 앨범',
+                    'lyrics'       : 'lyrics1',
+                    'artist_id'    : [1],
+                    'artist_name'  : ['방탄소년단']
+                }]
+            }
+        )
         self.assertEqual(response.status_code, 200)
+
+    def test_recommendation_music_get_fail(self):
+        client = Client()
+        response = client.get('/music/recommendation_music/100')
+        self.assertEqual(response.json(),
+            {
+                'message': 'MUSIC_DOES_NOT_EXIST'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
 
 class NewsTest(TestCase):
     def setUp(self):
@@ -179,7 +280,97 @@ class NewsTest(TestCase):
                 ]
             }
         )
+
+class StationMusicTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistMusic.objects.create(
+            artist = Artist.objects.get(id=1),
+            music  = Music.objects.get(id=1),
+        )
+
+        Station.objects.create(
+            id          = 1,
+            name        = "힙터질때",
+            description = "description1"
+        )
+
+        StationMusic.objects.create(
+            station = Station.objects.get(id=1),
+            music   = Music.objects.get(id=1),
+        )
+
+    def tearDown(self):
+        Station.objects.all().delete()
+        Music.objects.all().delete()
+        Album.objects.all().delete()
+        StationMusic.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+
+    def test_station_music_get_success(self):
+        client = Client()
+        response = client.get('/music/station_music/1')
+        self.assertEqual(response.json(),
+            {
+                'station': {
+                    'station__description': 'description1',
+                    'station__name': '힙터질때'},
+                'music_list': [{
+                    'music_id'     : 1,
+                    'music_name'   : 'ON',
+                    'track_number' : 1,
+                    'album_id'     : 1,
+                    'album_image'  : 'album_img1',
+                    'album_name'   : '방탄 앨범',
+                    'lyrics'       : 'lyrics1',
+                    'artist_id'    : [1],
+                    'artist_name'  : ['방탄소년단']
+                }]
+            }
+        )
         self.assertEqual(response.status_code, 200)
+
+    def test_station_music_get_fail(self):
+        client = Client()
+        response = client.get('/music/station_music/100')
+        self.assertEqual(response.json(),
+            {
+                'message': 'MUSIC_DOES_NOT_EXIST'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
 
 class RecommendationTest(TestCase):
     def setUp(self):
@@ -189,7 +380,7 @@ class RecommendationTest(TestCase):
             title                   = "FRIDAY DISCO",
             sub_title               = "VIBE",
             main_image              = "https://music-phinf.pstatic.net/20191121_189/1574328239813ldKsO_PNG/VIBE_%B0%F8%C5%EB_FridayDisco.png",
-            description             = "주말을 향해 달려온 당신을 위한 흥을 돋우는 경쾌한 리듬! 지루할 틈 없이 리듬을 타게 되는 디스코, 펑키 음악과 함께 신나는 주말을 맞이하세요. 디스코 음악을 사랑하는 사장님이 계신 카페 '파티션 WSC'에서 선곡한 이 플레이리스트는 매주 업데이트됩니다. 업데이트되면 수록곡이 바뀌니, 마음에 드는 곡은 좋아요를 눌러 보관함에 담아두세요."            
+            description             = "주말을 향해 달려온 당신을 위한 흥을 돋우는 경쾌한 리듬! 지루할 틈 없이 리듬을 타게 되는 디스코, 펑키 음악과 함께 신나는 주말을 맞이하세요. 디스코 음악을 사랑하는 사장님이 계신 카페 '파티션 WSC'에서 선곡한 이 플레이리스트는 매주 업데이트됩니다. 업데이트되면 수록곡이 바뀌니, 마음에 드는 곡은 좋아요를 눌러 보관함에 담아두세요."
         )
 
     def tearDown(self):
@@ -199,7 +390,7 @@ class RecommendationTest(TestCase):
         client = Client()
         response = client.get('/music/recommendation')
         self.assertEqual(response.json(),
-            {               
+            {
                 "recommendation_list": [
                     {
                         "recommendation_id" : 2,
@@ -211,7 +402,74 @@ class RecommendationTest(TestCase):
                 ]
             }
         )
+
+class AlbumMusicTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+    def tearDown(self):
+        Music.objects.all().delete()
+        Album.objects.all().delete()
+
+    def test_album_music_get_success(self):
+        client = Client()
+        response = client.get('/music/album_music/1')
+        self.assertEqual(response.json(),
+            {
+                'album': {
+                    'album__name'         : '방탄 앨범',
+                    'album__image'        : 'album_img1',
+                    'album__release_date' : '2000-10-10',
+                    'album__description'  : 'album_desc',
+                    'album__genre__name'  : None,
+                    'artist__name'        : '방탄소년단'
+                },
+                'music_list': [{
+                    'music_id'     : 1,
+                    'music_name'   : 'ON',
+                    'track_number' : 1,
+                    'album_id'     : 1,
+                    'album_image'  : 'album_img1',
+                    'album_name'   : '방탄 앨범',
+                    'lyrics'       : 'lyrics1',
+                    'artist_id'    : [1],
+                    'artist_name'  : ['방탄소년단']
+                }]
+            }
+        )
         self.assertEqual(response.status_code, 200)
+
+    def test_album_music_get_fail(self):
+        client = Client()
+        response = client.get('/music/album_music/100')
+        self.assertEqual(response.json(),
+            {
+                'message': 'MUSIC_DOES_NOT_EXIST'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
 
 class LatestAlbumTest(TestCase):
     def setUp(self):
@@ -221,7 +479,6 @@ class LatestAlbumTest(TestCase):
             name                    = "Lovely Sweet Heart",
             image                   = "https://musicmeta-phinf.pstatic.net/album/000/060/60001.jpg?type=r480Fll&v=20191212192801",
             release_date            = "2010-01-01"
-                        
         )
 
         Album.objects.create(
@@ -250,7 +507,6 @@ class LatestAlbumTest(TestCase):
             artist                  = Artist.objects.get(id = 2),
             album                   = Album.objects.get(id = 2)
         )
-        
 
     def tearDown(self):
         Artist.objects.all().delete()
@@ -262,7 +518,7 @@ class LatestAlbumTest(TestCase):
         response = client.get('/music/latestalbum')
         self.assertEqual(response.json(),
             {
-                "latest_album_list" : [                    
+                "latest_album_list" : [
                     {
                         'album_id'        :  1,
                         'album_name'      :  "Lovely Sweet Heart",
@@ -273,11 +529,338 @@ class LatestAlbumTest(TestCase):
                         'album_id'         : 2,
                         'album_name'      : "전설",
                         'album_image'     : "https://musicmeta-phinf.pstatic.net/album/002/923/2923941.jpg?type=r480Fll&v=20200218131711",
-                        'album_artist_name'     : ["잔나비"]           
-                    }                                        
+                        'album_artist_name'     : ["잔나비"]
+                    }
+                ]
+            }
+        )
+
+class AlbumMusicTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistMusic.objects.create(
+            artist = Artist.objects.get(id=1),
+            music  = Music.objects.get(id=1),
+        )
+
+    def tearDown(self):
+        Music.objects.all().delete()
+        Album.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+
+    def test_artist_music_success(self):
+        client = Client()
+        response = client.get('/music/artist_music/1')
+        self.assertEqual(response.json(),
+            {
+                'music_list': [{
+                    'music_id'     : 1,
+                    'music_name'   : 'ON',
+                    'track_number' : 1,
+                    'album_id'     : 1,
+                    'album_image'  : 'album_img1',
+                    'album_name'   : '방탄 앨범',
+                    'lyrics'       : 'lyrics1',
+                    'artist_id'    : [1],
+                    'artist_name'  : ['방탄소년단']
+                }]
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_artist_music_station_get_fail(self):
+        client = Client()
+        response = client.get('/music/artist_music/100')
+        self.assertEqual(response.json(),
+            {
+                'music_list': []
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+class AlbumListTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistAlbum.objects.create(
+            artist = Artist.objects.get(id=1),
+            album  = Album.objects.get(id=1)
+        )
+
+    def tearDown(self):
+        Album.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistAlbum.objects.all().delete()
+
+    def test_album_artist_get_success(self):
+        client = Client()
+        response = client.get('/music/albums/artist1')
+        self.assertEqual(response.json(),
+            {
+                'album' : [
+                    {
+                        'id'          : 1,
+                        'name'        : '방탄 앨범',
+                        'image'       : 'album_img1',
+                        'artist_name' : ['방탄소년단']
+                    }
                 ]
             }
         )
         self.assertEqual(response.status_code, 200)
-    
 
+    def test_album_artist_get_fail(self):
+        client = Client()
+        response = client.get('/music/albums/artist100')
+        self.assertEqual(response.json(),
+            {
+                "album": []
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+class TrackDetailTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistMusic.objects.create(
+            artist = Artist.objects.get(id=1),
+            music  = Music.objects.get(id=1)
+        )
+
+    def tearDown(self):
+        Album.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+        Music.objects.all().delete()
+
+    def test_music_detail_get_success(self):
+        client = Client()
+        response = client.get('/music/track/1')
+        self.assertEqual(response.json(),
+            {
+                'music' : {
+                    'name'        : 'ON',
+                    'writer'      : 'writer1',
+                    'composer'    : 'composer1',
+                    'arranger'    : 'arranger1',
+                    'lyrics'      : 'lyrics1',
+                    'artist_id'   : [1],
+                    'artist_name' : ['방탄소년단']
+                }
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_music_detail_get_fail(self):
+        client = Client()
+        response = client.get('/music/track/999')
+        self.assertEqual(response.json(),
+            {
+                "message": "MUSIC_DOES_NOT_EXIST"
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+
+class ArtistDetailTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Genre.objects.create(
+            id   = 1,
+            name = '힙합'
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistGenre.objects.create(
+            artist = Artist.objects.get(id=1),
+            genre  = Genre.objects.get(id=1)
+        )
+
+    def tearDown(self):
+        Genre.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistGenre.objects.all().delete()
+
+    def test_artist_detail_get_success(self):
+        client = Client()
+        response = client.get('/music/artist/1')
+        self.assertEqual(response.json(),
+            {
+                'artist' : {
+                    'name'       : '방탄소년단',
+                    'image'      : '방탄 이미지',
+                    'debut_date' : '1999-10-11',
+                    'genre'      : ['힙합']
+                }
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_artist_detail_get_fail(self):
+        client = Client()
+        response = client.get('/music/artist/300')
+        self.assertEqual(response.json(),
+            {
+                "message": "ARTIST_DOES_NOT_EXIST"
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+
+class MusicPlayTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Album.objects.create(
+            id           = 1,
+            name         = "방탄 앨범",
+            image        = "album_img1",
+            release_date = "2000-10-10",
+            description  = "album_desc",
+            is_regular   = True
+        )
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+            album        = Album.objects.get(id=1)
+        )
+
+        Artist.objects.create(
+            id         = 1,
+            name       = "방탄소년단",
+            image      = "방탄 이미지",
+            debut_date = "1999-10-11",
+            is_group   = True
+        )
+
+        ArtistMusic.objects.create(
+            artist = Artist.objects.get(id=1),
+            music  = Music.objects.get(id=1)
+        )
+
+    def tearDown(self):
+        Album.objects.all().delete()
+        Music.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+
+    def test_music_play_get_success(self):
+        client = Client()
+        response = client.get('/music/1/play')
+        self.assertEqual(response.json(),
+            {
+                'music' : {
+                    'id'          : 1,
+                    'name'        : 'ON',
+                    'play_time'   : '00:03:10',
+                    'album_image' : 'album_img1',
+                    'artist_name' : ['방탄소년단']
+                }
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_music_play_get_fail(self):
+        client = Client()
+        response = client.get('/music/999/play')
+        self.assertEqual(response.json(),
+            {
+                "message": "MUSIC_DOES_NOT_EXIST"
+            }
+        )
+        self.assertEqual(response.status_code, 400)

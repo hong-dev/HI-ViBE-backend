@@ -47,8 +47,6 @@ class PlaylistMusic(models.Model):
 class MusicHistory(models.Model):
     user       = models.ForeignKey('User', on_delete = models.SET_NULL, null = True)
     music      = models.ForeignKey(Music, on_delete = models.SET_NULL, null = True)
-    artist     = models.ForeignKey(Artist, on_delete = models.SET_NULL, null = True)
-    album      = models.ForeignKey(Album, on_delete = models.SET_NULL, null = True)
     count      = models.IntegerField()
     updated_at = models.DateTimeField(auto_now = True)
 

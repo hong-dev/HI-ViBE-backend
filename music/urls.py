@@ -6,7 +6,15 @@ from .views import (
     MusicMagazineView,
     NewsView,
     RecommendationView,
-    LatestAlbumView
+    LatestAlbumView,
+    RecommendationMusicView,
+    StationMusicView,
+    AlbumMusicView,
+    ArtistMusicView,
+    MusicPlayView,
+    MusicView,
+    ArtistView,
+    AlbumListView
 )
 
 from django.urls import path
@@ -19,5 +27,13 @@ urlpatterns = [
     path('/magazine/<int:magazine_id>', MusicMagazineView.as_view()),
     path('/news', NewsView.as_view()),
     path('/recommendation', RecommendationView.as_view()),
-    path('/latestalbum', LatestAlbumView.as_view())
+    path('/latestalbum', LatestAlbumView.as_view()),
+    path('/recommendation_music/<int:recommendation_id>', RecommendationMusicView.as_view()),
+    path('/station_music/<int:station_id>', StationMusicView.as_view()),
+    path('/album_music/<int:album_id>', AlbumMusicView.as_view()),
+    path('/artist_music/<int:artist_id>', ArtistMusicView.as_view()),
+    path('/albums/artist<int:artist_id>', AlbumListView.as_view()),
+    path('/track/<int:music_id>', MusicView.as_view()),
+    path('/artist/<int:artist_id>', ArtistView.as_view()),
+    path('/<int:music_id>/play', MusicPlayView.as_view()),
 ]
