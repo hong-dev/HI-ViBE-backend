@@ -11,22 +11,13 @@ class Album(models.Model):
     image            = models.URLField(max_length = 2000, null = True)
     release_date     = models.DateField(null = True)
     description      = models.TextField(null = True)
-    production_name  = models.CharField(max_length = 30, null = True)
-    agency_name      = models.CharField(max_length = 30, null = True)
+    production_name  = models.CharField(max_length = 200, null = True)
+    agency_name      = models.CharField(max_length = 200, null = True)
     is_regular       = models.BooleanField(default = False)
     genre            = models.ManyToManyField('Genre', through = 'GenreAlbum')
-    similar_relation = models.ManyToManyField('self', through = 'SimilarAlbum', symmetrical = False)
 
     class Meta:
         db_table = 'albums'
-
-class SimilarAlbum(models.Model):
-    base_album    = models.ForeignKey('Album', on_delete = models.SET_NULL, null = True, related_name = 'base_album')
-    similar_album = models.ForeignKey('Album', on_delete = models.SET_NULL, null = True, related_name = 'similar_album')
-
-    class Meta:
-        unique_together = ('base_album', 'similar_album')
-        db_table        = 'similar_albums'
 
 class GenreAlbum(models.Model):
     genre = models.ForeignKey('Genre', on_delete = models.SET_NULL, null = True)
@@ -37,30 +28,21 @@ class GenreAlbum(models.Model):
 
 class Music(models.Model):
     album            = models.ForeignKey('Album', on_delete = models.SET_NULL, null = True)
-    name             = models.CharField(max_length = 50)
+    name             = models.CharField(max_length = 100)
     content          = models.URLField(max_length = 2000)
     track_number     = models.IntegerField(default = 1)
-    writer           = models.CharField(max_length = 30, null = True)
-    composer         = models.CharField(max_length = 30, null = True)
-    arranger         = models.CharField(max_length = 30, null = True)
+    writer           = models.CharField(max_length = 600, null = True)
+    composer         = models.CharField(max_length = 600, null = True)
+    arranger         = models.CharField(max_length = 600, null = True)
     lyrics           = models.TextField(null = True)
-    play_time        = models.CharField(max_length = 10, null = True)
-    similar_relation = models.ManyToManyField('self', through = 'SimilarMusic', symmetrical = False)
+    play_time        = models.TimeField(null = True)
 
     class Meta:
         db_table = 'musics'
 
-class SimilarMusic(models.Model):
-    base_music    = models.ForeignKey('Music', on_delete = models.SET_NULL, null = True, related_name = 'base_music')
-    similar_music = models.ForeignKey('Music', on_delete = models.SET_NULL, null = True, related_name = 'similar_music')
-
-    class Meta:
-        unique_together = ('base_music', 'similar_music')
-        db_table        = 'similar_musics'
-
 class Video(models.Model):
     music        = models.ForeignKey('Music', on_delete = models.SET_NULL, null = True)
-    name         = models.CharField(max_length = 60)
+    name         = models.CharField(max_length = 300)
     main_image   = models.URLField(max_length = 2000)
     content      = models.URLField(max_length = 2000, null = True)
     release_date = models.DateField()
@@ -70,11 +52,11 @@ class Video(models.Model):
         db_table = 'videos'
 
 class Artist(models.Model):
-    name             = models.CharField(max_length = 25)
+    name             = models.CharField(max_length = 100)
     image            = models.URLField(max_length = 2000, null = True)
     debut_date       = models.DateField(null = True)
-    birth_country    = models.CharField(max_length = 20, null = True)
-    nationality      = models.CharField(max_length = 20, null = True)
+    birth_country    = models.CharField(max_length = 50, null = True)
+    nationality      = models.CharField(max_length = 50, null = True)
     birth_date       = models.DateField(null = True)
     gender           = models.CharField(max_length = 10, null = True)
     is_group         = models.BooleanField(default = False)
@@ -124,8 +106,8 @@ class ArtistVideo(models.Model):
         db_table = 'artist_videos'
 
 class Recommendation(models.Model):
-    title       = models.CharField(max_length = 100)
-    sub_title   = models.CharField(max_length = 50)
+    title       = models.CharField(max_length = 200)
+    sub_title   = models.CharField(max_length = 100)
     main_image  = models.URLField(max_length = 2000)
     description = models.TextField()
     music       = models.ManyToManyField('Music', through = 'RecommendationMusic')
@@ -136,17 +118,15 @@ class Recommendation(models.Model):
 class RecommendationMusic(models.Model):
     recommendation = models.ForeignKey('Recommendation', on_delete = models.SET_NULL, null = True)
     music          = models.ForeignKey('Music', on_delete = models.SET_NULL, null = True)
-    album          = models.ForeignKey('Album', on_delete = models.SET_NULL, null = True)
-    artist         = models.ForeignKey('Artist', on_delete = models.SET_NULL, null = True)
 
     class Meta:
         db_table = 'recommendation_musics'
 
 class News(models.Model):
-    recommendation = models.ForeignKey('Recommendation', on_delete = models.SET_NULL, null = True)
-    thumbnail      = models.URLField(max_length = 2000)
-    main_text      = models.TextField()
-    news_link      = models.URLField(max_length = 2000)
+    artist    = models.ForeignKey('Artist', on_delete = models.SET_NULL, null = True)
+    thumbnail = models.URLField(max_length = 2000)
+    main_text = models.TextField()
+    news_link = models.URLField(max_length = 2000)
 
     class Meta:
         db_table = 'news'
@@ -171,9 +151,10 @@ class MusicMagazine(models.Model):
         db_table = 'music_magazines'
 
 class Station(models.Model):
-    name  = models.CharField(max_length = 30)
-    music = models.ManyToManyField('Music', through = 'StationMusic')
-    theme = models.ManyToManyField('Theme', through = 'StationTheme')
+    name        = models.CharField(max_length = 30)
+    description = models.TextField(null = True)
+    music       = models.ManyToManyField('Music', through = 'StationMusic')
+    theme       = models.ManyToManyField('Theme', through = 'StationTheme')
 
     class Meta:
         db_table = 'stations'
@@ -190,7 +171,7 @@ class Theme(models.Model):
     name       = models.CharField(max_length = 50)
     creator    = models.CharField(max_length = 30)
     charge     = models.CharField(max_length = 10)
-    main_image = models.URLField(max_length = 2000)
+    main_image = models.URLField(max_length = 2000, null = True)
 
     class Meta:
         db_table = 'themes'
