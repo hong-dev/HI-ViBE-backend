@@ -19,8 +19,7 @@ from .models import (
     Artist
 )
 
-from django.test import TestCase
-from django.test import Client
+from django.test   import TestCase, Client
 
 class StationThemeTest(TestCase):
     def setUp(self):
@@ -847,9 +846,10 @@ class MusicPlayTest(TestCase):
                 'music' : {
                     'id'          : 1,
                     'name'        : 'ON',
-                    'play_time'   : '00:03:10',
+                    'play_time'   : '03:10',
                     'album_image' : 'album_img1',
-                    'artist_name' : ['방탄소년단']
+                    'artist_name' : ['방탄소년단'],
+                    'lyrics'      : 'lyrics1'
                 }
             }
         )
@@ -864,3 +864,64 @@ class MusicPlayTest(TestCase):
             }
         )
         self.assertEqual(response.status_code, 400)
+
+class StreamMusicTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Music.objects.create(
+            id           = 1,
+            name         = "ON",
+            content      = 'test.mp3',
+            track_number = 1,
+            writer       = "writer1",
+            composer     = "composer1",
+            arranger     = "arranger1",
+            lyrics       = "lyrics1",
+            play_time    = "00:03:10",
+        )
+
+        Music.objects.create(
+            id           = 3,
+            name         = "NO",
+            content      = 'test1.mp3',
+            track_number = 2,
+            writer       = "writer2",
+            composer     = "composer2",
+            arranger     = "arranger2",
+            lyrics       = "lyrics2",
+            play_time    = "00:04:10",
+        )
+
+    def tearDown(self):
+        Music.objects.all().delete()
+
+    def test_stream_success(self):
+        client = Client()
+        response = client.get('/music/stream/1')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('Content-Disposition'), "filename = 1.mp3")
+        self.assertEqual(response.get('Content-Length'), '5207040')
+
+    def test_stream_music_fail(self):
+        client = Client()
+        response = client.get('/music/stream/100')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+            {
+                "message": "MUSIC_DOES_NOT_EXIST"
+            }
+        )
+
+    def test_stream_file_fail(self):
+        client = Client()
+        response = client.get('/music/stream/3')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+            {
+                "message": "FILE_DOES_NOT_EXIST"
+            }
+        )

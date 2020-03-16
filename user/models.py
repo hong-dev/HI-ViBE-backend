@@ -18,7 +18,7 @@ class User(models.Model):
     gender      = models.CharField(max_length = 5)
     birthday    = models.DateField(null = True)
     expiry_date = models.DurationField(null = True)
-    theme       = models.ForeignKey(Theme, on_delete = models.SET_NULL, null = True)
+    theme       = models.ForeignKey(Theme, on_delete = models.SET_NULL, null = True, default = 1)
     created_at  = models.DateTimeField(auto_now_add = True)
     updated_at  = models.DateTimeField(auto_now = True)
 

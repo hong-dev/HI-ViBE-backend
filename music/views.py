@@ -13,6 +13,8 @@ from .models import (
     Artist
 )
 
+from vibe.settings import MEDIA_URL
+
 from django.views import View
 from django.http  import HttpResponse, JsonResponse, StreamingHttpResponse
 
@@ -210,6 +212,49 @@ class ArtistMusicView(View):
         except IndexError:
             return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
 
+class StationMusicView(View):
+    def get(self, request, station_id):
+        try:
+            musics = Music.objects.filter(stationmusic__station_id = station_id)
+            station_details = list(musics
+                                   .values(
+                                       'station__name',
+                                       'station__description'))[0]
+
+            return JsonResponse({"station": station_details,
+                                 "music_list": get_music_list(musics)}, status = 200)
+
+        except IndexError:
+            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
+
+class AlbumMusicView(View):
+    def get(self, request, album_id):
+        try:
+            musics = Music.objects.filter(album_id = album_id).prefetch_related('artistmusic_set')
+            album_details = list(musics
+                                 .values(
+                                     'album__name',
+                                     'album__image',
+                                     'album__release_date',
+                                     'album__description',
+                                     'album__genre__name',
+                                     'artist__name'))[0]
+
+            return JsonResponse({"album_details": album_details,
+                                 "music_list": get_music_list(musics)}, status = 200)
+
+        except IndexError:
+            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
+
+class ArtistMusicView(View):
+    def get(self, request, artist_id):
+        try:
+            musics = Music.objects.filter(artistmusic__artist_id = artist_id)
+            return JsonResponse({"music_list": get_music_list(musics)}, status = 200)
+
+        except IndexError:
+            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
+
 class AlbumListView(View):
     def get(self, request, artist_id):
         albums = Album.objects.prefetch_related('artistalbum_set').filter(artist__id = artist_id)
@@ -267,12 +312,42 @@ class MusicPlayView(View):
             music_details = {
                 'id'          : music.id,
                 'name'        : music.name,
-                'play_time'   : music.play_time,
+                'play_time'   : music.play_time.strftime("%M:%S"),
                 'album_image' : music.album.image,
-                'artist_name' : list(music.artistmusic_set.values_list('artist__name', flat = True))
+                'artist_name' : list(music.artistmusic_set.values_list('artist__name', flat = True)),
+                'lyrics'      : music.lyrics
             }
 
             return JsonResponse({"music": music_details}, status = 200)
 
         except Music.DoesNotExist:
             return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
+
+class MusicStreamView(View):
+    def get(self, request, music_id):
+        try:
+            music    = Music.objects.get(id = music_id)
+            content  = MEDIA_URL + f"{music_id}.mp3"
+            response = StreamingHttpResponse(self.iterator(content),
+                                             status = 200,
+                                             content_type = 'audio/mp3')
+
+            response['Cache-Control'] = 'no-cache'
+            response['Content-Disposition'] = f'filename = {music_id}.mp3'
+            response['Content-Length'] = len(open(content,'rb').read())
+            return response
+
+        except Music.DoesNotExist:
+            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
+
+        except FileNotFoundError:
+            return JsonResponse({"message": "FILE_DOES_NOT_EXIST"}, status = 400)
+
+    def iterator(self, content):
+        with open(content, 'rb') as music:
+            while True:
+                read_music = music.read()
+                if read_music:
+                    yield read_music
+                else:
+                    break

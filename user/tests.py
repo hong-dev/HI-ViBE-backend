@@ -1,11 +1,22 @@
 import json
 
-from .models import User
+from .models      import User
+from music.models import Theme
 
 from django.test   import TestCase, Client
 from unittest.mock import patch, MagicMock
 
 class NaverSignInTest(TestCase):
+    client = Client()
+    def setUp(self):
+        Theme.objects.create(
+            id   = 1,
+            name = "기본테마"
+        )
+
+    def tearDown(self):
+        Theme.objects.all().delete()
+
     @patch('user.views.requests')
     def test_user_signin_success(self, mocked_request):
         class NaverResponse:
