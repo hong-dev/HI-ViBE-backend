@@ -64,13 +64,14 @@ class MagazineView(View):
         
 class MusicMagazineView(View):
     def get(self, request, magazine_id):
+        limit = request.GET.get('limit', 20)
         try:
             music_magazine_list = (
                 MusicMagazine
                 .objects
                 .filter(magazine_id = magazine_id)
                 .select_related('music')
-                .all()
+                .all()[:limit]
             )
             music_magazine = [{
                 'magazine_id'       : music_magazine.magazine_id,
@@ -83,10 +84,11 @@ class MusicMagazineView(View):
 
 class NewsView(View):
     def get(self, request):
+        limit = request.GET.get('limit', 10)
         news_all = (
             News
             .objects
-            .all()
+            .all()[:limit]
         )
 
         news_list = [{
@@ -98,11 +100,12 @@ class NewsView(View):
         return JsonResponse({"news_list": news_list}, status = 200)
             
 class RecommendationView(View):
-    def get(self, request):        
+    def get(self, request):
+        limit = request.GET.get('limit', 17)        
         recommendations = (
             Recommendation
             .objects
-            .all()
+            .all()[:limit]
         )
 
         recommendation_list = [{
@@ -115,12 +118,13 @@ class RecommendationView(View):
         return JsonResponse({"recommendation_list": recommendation_list}, status = 200)
 
 class LatestAlbumView(View):
-    def get(self, request):        
+    def get(self, request):
+        limit = request.GET.get('limit', 15)
         latest_albums = (
             Album
             .objects
             .all()
-            .order_by('-release_date')
+            .order_by('-release_date')[:limit]
         )            
 
         latest_album_list = [{
