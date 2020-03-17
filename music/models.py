@@ -15,6 +15,7 @@ class Album(models.Model):
     agency_name      = models.CharField(max_length = 200, null = True)
     is_regular       = models.BooleanField(default = False)
     genre            = models.ManyToManyField('Genre', through = 'GenreAlbum')
+    like_count       = models.IntegerField(null = True)
 
     class Meta:
         db_table = 'albums'
@@ -36,6 +37,7 @@ class Music(models.Model):
     arranger         = models.CharField(max_length = 600, null = True)
     lyrics           = models.TextField(null = True)
     play_time        = models.TimeField(null = True)
+    like_count       = models.IntegerField(null = True)
 
     class Meta:
         db_table = 'musics'

@@ -6,6 +6,7 @@ django.setup()
 
 from datetime import date
 
+import random
 import csv
 from music.models import *
 
@@ -79,14 +80,18 @@ def add_music():
 
         for music in list(reader)[1:]:
             print(music)
+            a = ['00:03:40', '00:02:30', '00:03:12', '00:01:48', '00:02:19', '00:04:08']
+            if music[7] == '':
+                play = random.choice(a)
             Music.objects.create(
-                album_id          = music[0],
-                name              = music[1],
-                track_number      = music[2],
-                writer            = music[3],
-                composer          = music[4],
-                arranger          = music[5],
-                lyrics            = music[6]        
+                album_id      = music[0],
+                name          = music[1],
+                track_number  = music[2],
+                writer        = music[3],
+                composer      = music[4],
+                arranger      = music[5],
+                lyrics        = music[6],
+                play_time     = play
                     )
 
 add_music()
