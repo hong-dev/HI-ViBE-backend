@@ -10,7 +10,8 @@ from .models import (
     Recommendation,
     Album,
     ArtistAlbum,
-    Artist
+    Artist,
+    Video
 )
 
 from vibe.settings import MEDIA_URL
@@ -57,6 +58,7 @@ class MagazineView(View):
         )
         magazine_list = [{
             'magazine_id'       : magazine.id,
+            'thumbnail'         : magazine.thumbnail,
             'badge'             : magazine.badge,
             'release_date'      : magazine.release_date,
             'title'             : magazine.title,
@@ -121,7 +123,7 @@ class RecommendationView(View):
 
 class LatestAlbumView(View):
     def get(self, request):
-        limit = request.GET.get('limit', 15)
+        limit = request.GET.get('limit', 15)        
         latest_albums = (
             Album
             .objects
@@ -133,7 +135,7 @@ class LatestAlbumView(View):
             'album_id'             : album.id,
             'album_name'           : album.name,
             'album_image'          : album.image,
-            'album_artist_name'    : list(album.artistalbum_set.values_list('artist__name', flat = True))
+            'album_artist_name'    : list(album.artistalbum_set.values_list('artist__name', flat = True)) 
         } for album in latest_albums ]
         return JsonResponse({"latest_album_list": latest_album_list}, status = 200)
 
@@ -351,3 +353,54 @@ class MusicStreamView(View):
                     yield read_music
                 else:
                     break
+
+class MusicSearchView(View):
+    def get(self, request):        
+        limit = request.GET.get('limit', 20)
+        query = request.GET.get('query', None)
+
+        if query is not None:
+            musics     = Music.objects.filter(name__icontains = query)[:limit]
+            music_list = [{
+                "id"                  : music.id,
+                "music_name"          : music.name,
+                "album_image"         : music.album.image if music.album else None,
+                "artist_name"         : list(music.artistmusic_set.values_list('artist__name', flat = True))
+                } for music in musics]
+
+            albums     = Album.objects.filter(name__icontains = query)[:limit]
+            album_list = [{
+                "id"                  : album.id,
+                "album_name"          : album.name,
+                "album_image"         : album.image,
+                "artist_name"         : list(album.artistalbum_set.values_list('artist__name', flat = True))
+            } for album in albums]
+
+            videos     = Video.objects.filter(name__icontains = query)[:limit]
+            video_list = [{
+                "id"                  : video.id,
+                "video_name"          : video.name,
+                "video_image"         : video.main_image,
+                "artist_name"         : list(video.artistvideo_set.values_list('artist__name', flat = True))
+            } for video in videos]
+
+            lyrics_list = Music.objects.filter(lyrics__icontains = query)[:limit]
+            lyrics_list = [{
+                "id"                 : lyrics.id,
+                "lyrics"             : lyrics.lyrics,
+                "music_name"         : lyrics.name,
+                "lyrics_writer"      : lyrics.writer,
+                "album_image"        : lyrics.album.image if lyrics.album else None
+            } for lyrics in lyrics_list]
+            
+            return JsonResponse(
+                {
+                    "music_list"     : music_list,
+                    "album_list"     : album_list,
+                    "video_list"     : video_list,
+                    "lyrics_list"    : lyrics_list
+                }, status = 200)
+
+
+
+        

@@ -16,7 +16,9 @@ from .models import (
     ArtistGenre,
     Album,
     ArtistAlbum,
-    Artist
+    Artist,
+    Video,
+    ArtistVideo
 )
 
 from django.test   import TestCase, Client
@@ -129,7 +131,8 @@ class MagazineTest(TestCase):
         client = Client()
         Magazine.objects.create(
             id                = 1,
-            badge             = "https://music-phinf.pstatic.net/20190702_287/1562066500033t4gp0_PNG/icon_pick.png",
+            thumbnail         = "www.image.com",
+            badge             = "https://music-phinf.pstatic.net/20190702_287/1562066500033t4gp0_PNG/icon_pick.png",            
             release_date      = "2020-03-10",
             title             = "이주의 디깅 #49 \\n임영웅",
             description       = "지상파 이외 채널 프로그램으로는 가장 높은 시청률이라는 대기록을 세운 ‘내일은 미스터트롯’이 많은 사랑을 받고 있다. 갑자기 웬 트로트 붐이냐?라고 하는 사람들도 있겠지만 사실 트로트는 아주 오래전부터 우리와 함께해 왔다. 세대가 바뀌면서 인기가 줄어들긴 했지만 송가인, 임영웅 같은 가수들의 노래에 열광하는 우리의 모습은 트로트가 아직 건재함을, 아니 오히려 이 시대에 더욱 잘 부합하는 음악이라는 생각을 하게 만든다."
@@ -146,6 +149,7 @@ class MagazineTest(TestCase):
                  "magazine_list": [
                      {
                          "magazine_id"               : 1,
+                         "thumbnail"                 : "www.image.com",
                          "badge"                     : "https://music-phinf.pstatic.net/20190702_287/1562066500033t4gp0_PNG/icon_pick.png",
                          "release_date"              : "2020-03-10",
                          "title"                     : "이주의 디깅 #49 \\n임영웅",
@@ -489,12 +493,12 @@ class LatestAlbumTest(TestCase):
 
         Artist.objects.create(
             id                      = 1,
-            name                  = "씨야(SeeYa)"
+            name                    = "씨야(SeeYa)"
         )
 
         Artist.objects.create(
             id                      = 2,
-            name                  = "잔나비"
+            name                    = "잔나비"
         )
 
         ArtistAlbum.objects.create(
@@ -925,3 +929,116 @@ class StreamMusicTest(TestCase):
                 "message": "FILE_DOES_NOT_EXIST"
             }
         )
+
+class MusicSearchTest(TestCase):
+    def setUp(self):
+
+        Album.objects.create(
+            id                  = 1,
+            image               = "www.hh.co"
+        )
+
+        Music.objects.create(
+            id                  = 1,
+            name                = "lalala",
+            album               = Album.objects.get(id=1)
+        )        
+
+        Artist.objects.create(
+            id                  = 1,
+            name                = "singer"
+        )
+
+        ArtistMusic.objects.create(
+            artist              = Artist.objects.get(id=1),
+            music               = Music.objects.get(id=1)
+        )
+
+        Album.objects.create(
+            id                  = 2,
+            name                = "lala",
+            image               = "ww.image.co"
+        )
+
+        Artist.objects.create(
+            id                  = 2,
+            name                = "tom"
+        )
+
+        ArtistAlbum.objects.create(
+            artist              = Artist.objects.get(id=2),
+            album               = Album.objects.get(id=2)
+        )
+
+        Video.objects.create(
+            id                  = 3,
+            name                = "la",
+            main_image          = "ww.image.co",
+            release_date        = "1999-01-01"
+        )
+
+        Artist.objects.create(
+            id                  = 3,
+            name                = "bob"
+        )
+
+        ArtistVideo.objects.create(
+            artist              = Artist.objects.get(id=3),
+            video               = Video.objects.get(id=3)
+        )
+
+        Album.objects.create(
+            id                  = 4,
+            image               = "www.hh.co"
+        )
+
+        Music.objects.create(
+            id                  = 4,
+            name                = "song",
+            lyrics              = "lalalala",
+            writer              = "david",
+            album               = Album.objects.get(id=4)
+        )        
+       
+    def tearDown(self):
+        Music.objects.all().delete()
+        Album.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistMusic.objects.all().delete()
+        ArtistAlbum.objects.all().delete()
+        Video.objects.all().delete()
+        ArtistVideo.objects.all().delete()
+
+    def test_musicsearch_get_success(self):
+        client = Client()
+        response = client.get('/music/search?query=la')
+        self.assertEqual(response.json(),
+            {   
+                "music_list" : [{
+                        "id"               : 1,
+                        "music_name"       : "lalala",
+                        "album_image"      : "www.hh.co",
+                        "artist_name"      : ["singer"]
+                }],
+                "album_list" : [{
+                        "id"               : 2,
+                        "album_name"       : "lala",
+                        "album_image"      : "ww.image.co",
+                        "artist_name"      : ["tom"]
+                }],
+                "video_list" : [{
+                        "id"               : 3,
+                        "video_name"       : "la",
+                        "video_image"      : "ww.image.co",
+                        "artist_name"      : ["bob"]
+                }],
+                "lyrics_list" : [{
+                        "id"               : 4,
+                        "lyrics"           : "lalalala",
+                        "music_name"       : "song",
+                        "lyrics_writer"    : "david",
+                        "album_image"      : "www.hh.co"
+                }]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
