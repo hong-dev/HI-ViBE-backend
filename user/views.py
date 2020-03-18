@@ -4,6 +4,8 @@ import requests
 
 from vibe.settings import SECRET_KEY
 from .models       import User
+from music.models  import Album, Artist, ArtistAlbum
+from .utils        import login_required
 
 from datetime     import datetime
 from django.views import View
@@ -46,3 +48,22 @@ class NaverSignInView(View):
 
         except KeyError:
             return JsonResponse({"message": "INVALID_KEYS"}, status = 400)
+
+class LikeAlbumView(View):
+    @login_required
+    def get(self, request):
+        limit = request.GET.get('limit', 10)
+        like_albums = (
+            Album
+            .objects
+            .all()
+            .order_by('-like_count')[:limit]
+        )
+
+        like_album_list = [{
+            'album_id'             : album.id,
+            'album_name'           : album.name,
+            'album_image'          : album.image,
+            'album_artist_name'    : list(album.artistalbum_set.values_list('artist__name', flat = True))
+        } for album in like_albums ]
+        return JsonResponse({"like_album_list": like_album_list}, status = 200)
