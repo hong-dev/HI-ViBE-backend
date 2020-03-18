@@ -46,37 +46,10 @@ class NaverSignInTest(TestCase):
         header = {'HTTP_Authorization': 'naver_token'}
         response = client.get('/user/naver_auth', content_type = 'applications/json', **header)
 
-        self.assertEqual(response.status_code, 200)        
-
-class LoginRequiredTest(TestCase):
-    @patch('user.views.requests')
-    def test_user_signin_success(self, mocked_request):
-        class NaverResponse:
-            def json(self):
-                return {
-                    "resultcode": "00",
-                    "message": "success",
-                    "response": {
-                        "email": "test@email.com",
-                        "nickname": "test_nickname",
-                        "profile_image": "test_image",
-                        "age": "20-29",
-                        "gender": "F",
-                        "id": "12345678",
-                        "name": "test_name",
-                        "birthday": "10-11"
-                    }
-                }
-        mocked_request.get = MagicMock(return_value = NaverResponse())
-
-        client = Client()
-        header = {'HTTP_Authorization': 'naver_token'}
-        response = client.get('/user/naver_auth', content_type = 'applications/json', **header)
-
         self.assertEqual(response.status_code, 200)
-    
+
     def test_user_signin_post_fail(self):
-        client   = Client()        
+        client   = Client()
         header   = {'No_Authorizaeion' : '1234'}
         response = client.post('/user/naver_auth', content_type='application/json', **header)
 
@@ -122,7 +95,7 @@ class LikeAlbumTest(TestCase):
         Theme.objects.create(
             id                      = 1,
             name                    = "Theme1"
-        ) 
+        )
 
         User.objects.create(
             naver_id    =  1,
@@ -131,7 +104,7 @@ class LikeAlbumTest(TestCase):
             email       = "mail@mail.com",
             image       = "image",
             gender      = "M"
-        )   
+        )
 
     def tearDown(self):
         Artist.objects.all().delete()
@@ -163,4 +136,3 @@ class LikeAlbumTest(TestCase):
             }
         )
         self.assertEqual(response.status_code, 200)
-

@@ -1,3 +1,4 @@
+import jwt
 import json
 
 from .models import (
@@ -21,7 +22,10 @@ from .models import (
     ArtistVideo
 )
 
-from django.test   import TestCase, Client
+from user.models   import User
+from vibe.settings import SECRET_KEY
+
+from django.test import TestCase, Client
 
 class StationThemeTest(TestCase):
     def setUp(self):
@@ -96,7 +100,7 @@ class StationThemeTest(TestCase):
 
     def test_station_theme_get_success(self):
         client = Client()
-        response = client.get('/music/station/theme1')
+        response = client.get('/music/station/theme/1')
         self.assertEqual(response.json(),
             {
                 "theme_details": {
@@ -118,10 +122,70 @@ class StationThemeTest(TestCase):
 
     def test_station_theme_get_fail(self):
         client = Client()
-        response = client.get('/music/station/theme100')
+        response = client.get('/music/station/theme/100')
         self.assertEqual(response.json(),
             {
                 'message' : 'THEME_DOES_NOT_EXIST'
+            }
+        )
+        self.assertEqual(response.status_code, 400)
+
+class UserThemeTest(TestCase):
+    def setUp(self):
+        client = Client()
+
+        Theme.objects.create(
+            id = 1,
+            category = "기본테마",
+            name = "야호 테마",
+            creator = "yaho",
+            charge = "무료",
+        )
+
+        Theme.objects.create(
+            id = 4,
+            category = "기본테마",
+            name = "지코 테마",
+            creator = "VIBE",
+            charge = "무료",
+        )
+
+        User.objects.create(
+            id = 1,
+            naver_id = 1234,
+            nickname = "홍",
+            name = "Hong",
+            email = "hong@hong.com",
+            image = "image1",
+            gender = "F"
+        )
+
+    def tearDown(self):
+        User.objects.all().delete()
+        Theme.objects.all().delete()
+
+    def test_user_theme_get_success(self):
+        client = Client()
+        token = jwt.encode({"user_id": 1234}, SECRET_KEY['secret'], algorithm = 'HS256').decode('utf-8')
+        response = client.get('/music/theme/4', **{'HTTP_Authorization': token}, content_type = 'applications/json')
+        self.assertEqual(User.objects.get(id=1).theme_id, 4)
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_does_not_login(self):
+        client = Client()
+        token = None
+        response = client.get('/music/theme/4', **{'HTTP_Authorization': token}, content_type = 'applications/json')
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_theme_get_fail(self):
+        client = Client()
+        token = jwt.encode({"user_id": 1234}, SECRET_KEY['secret'], algorithm = 'HS256').decode('utf-8')
+        response = client.get('/music/theme/5', **{'HTTP_Authorization': token}, content_type = 'applications/json')
+
+        self.assertEqual(response.json(),
+            {
+                "message" : "THEME_DOES_NOT_EXIST"
             }
         )
         self.assertEqual(response.status_code, 400)
@@ -647,7 +711,7 @@ class AlbumListTest(TestCase):
 
     def test_album_artist_get_success(self):
         client = Client()
-        response = client.get('/music/albums/artist1')
+        response = client.get('/music/albums/artist/1')
         self.assertEqual(response.json(),
             {
                 'album' : [
@@ -664,7 +728,7 @@ class AlbumListTest(TestCase):
 
     def test_album_artist_get_fail(self):
         client = Client()
-        response = client.get('/music/albums/artist100')
+        response = client.get('/music/albums/artist/100')
         self.assertEqual(response.json(),
             {
                 "album": []
@@ -886,7 +950,7 @@ class StreamMusicTest(TestCase):
         )
 
         Music.objects.create(
-            id           = 3,
+            id           = 400,
             name         = "NO",
             content      = 'test1.mp3',
             track_number = 2,
@@ -906,7 +970,7 @@ class StreamMusicTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get('Content-Disposition'), "filename = 1.mp3")
-        self.assertEqual(response.get('Content-Length'), '5207040')
+        self.assertEqual(response.get('Content-Length'), '9359156')
 
     def test_stream_music_fail(self):
         client = Client()
@@ -921,7 +985,7 @@ class StreamMusicTest(TestCase):
 
     def test_stream_file_fail(self):
         client = Client()
-        response = client.get('/music/stream/3')
+        response = client.get('/music/stream/400')
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(),
