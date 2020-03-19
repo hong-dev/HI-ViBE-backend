@@ -400,7 +400,3 @@ class MusicSearchView(View):
                     "video_list"     : video_list,
                     "lyrics_list"    : lyrics_list
                 }, status = 200)
-
-
-
-        
