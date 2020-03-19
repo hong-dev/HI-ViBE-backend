@@ -3,9 +3,9 @@ import jwt
 import requests
 
 from vibe.settings import SECRET_KEY
+from music.models  import Music, Artist, Album, Artist, ArtistAlbum
 from .models       import User
-from music.models  import Album, Artist, ArtistAlbum
-from .utils        import login_required
+from .utils        import login_required, check_login
 
 from datetime     import datetime
 from django.views import View

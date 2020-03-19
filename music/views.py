@@ -14,7 +14,6 @@ from .models import (
     Video,
     Genre
 )
-
 from vibe.settings import MEDIA_URL
 from user.models   import User
 from user.utils    import check_login
@@ -141,7 +140,7 @@ class RecommendationView(View):
 
 class LatestAlbumView(View):
     def get(self, request):
-        limit = request.GET.get('limit', 15)        
+        limit = request.GET.get('limit', 15)
         latest_albums = (
             Album
             .objects
@@ -153,7 +152,7 @@ class LatestAlbumView(View):
             'album_id'             : album.id,
             'album_name'           : album.name,
             'album_image'          : album.image,
-            'album_artist_name'    : list(album.artistalbum_set.values_list('artist__name', flat = True)) 
+            'album_artist_name'    : list(album.artistalbum_set.values_list('artist__name', flat = True))
         } for album in latest_albums ]
         return JsonResponse({"latest_album_list": latest_album_list}, status = 200)
 
@@ -167,6 +166,7 @@ def get_music_list(musics):
             'album_name'   : music.album.name,
             'album_id'     : music.album.id,
             'lyrics'       : music.lyrics,
+            'stream_url'   : f"/stream/{music.id}",
             'artist_name'  : list(music.artistmusic_set.values_list('artist__name', flat = True)),
             'artist_id'    : list(music.artistmusic_set.values_list('artist__id', flat = True))
         } for music in musics]
@@ -355,6 +355,7 @@ class MusicStreamView(View):
             response['Cache-Control'] = 'no-cache'
             response['Content-Disposition'] = f'filename = {music_id}.mp3'
             response['Content-Length'] = len(open(content,'rb').read())
+            response['Accept-Ranges'] = 'bytes'
             return response
 
         except Music.DoesNotExist:
@@ -373,7 +374,7 @@ class MusicStreamView(View):
                     break
 
 class MusicSearchView(View):
-    def get(self, request):        
+    def get(self, request):
         limit = request.GET.get('limit', 20)
         query = request.GET.get('query', None)
 
@@ -410,7 +411,7 @@ class MusicSearchView(View):
                 "lyrics_writer"      : lyrics.writer,
                 "album_image"        : lyrics.album.image if lyrics.album else None
             } for lyrics in lyrics_list]
-            
+
             return JsonResponse(
                 {
                     "music_list"     : music_list,

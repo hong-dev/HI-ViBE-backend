@@ -1,12 +1,10 @@
-import json
 import jwt
+import json
 import requests
 
-from .models      import User
-from music.models import Theme
-from vibe.settings import SECRET_KEY
 from .models       import User
-from music.models  import Album, Artist, ArtistAlbum
+from music.models  import Theme, Music, Album, Artist, ArtistAlbum
+from vibe.settings import SECRET_KEY
 
 from django.test   import TestCase, Client
 from unittest.mock import patch, MagicMock
@@ -135,4 +133,3 @@ class LikeAlbumTest(TestCase):
                 ]
             }
         )
-        self.assertEqual(response.status_code, 200)
