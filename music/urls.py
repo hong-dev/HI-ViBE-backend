@@ -17,7 +17,11 @@ from .views import (
     ArtistView,
     AlbumListView,
     MusicStreamView,
-    MusicSearchView
+    MusicSearchView,
+    DomesticRankingView,
+    ForeignRankingView,
+    VideoRankingView,
+    GenreView
 )
 
 from django.urls import path
@@ -41,5 +45,9 @@ urlpatterns = [
     path('/artist/<int:artist_id>', ArtistView.as_view()),
     path('/<int:music_id>/play', MusicPlayView.as_view()),
     path('/stream/<int:music_id>', MusicStreamView.as_view()),
-    path('/search', MusicSearchView.as_view())
+    path('', MusicSearchView.as_view()),
+    path('/domestic-album', DomesticRankingView.as_view()),
+    path('/foreign-album', ForeignRankingView.as_view()),
+    path('/video', VideoRankingView.as_view()),
+    path('/genre', GenreView.as_view())
 ]
