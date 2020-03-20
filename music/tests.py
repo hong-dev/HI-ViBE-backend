@@ -307,7 +307,8 @@ class RecommendationMusicTest(TestCase):
                     'album_name'   : '방탄 앨범',
                     'lyrics'       : 'lyrics1',
                     'artist_id'    : [1],
-                    'artist_name'  : ['방탄소년단']
+                    'artist_name'  : ['방탄소년단'],
+                    'stream_url'   : '/stream/1'
                 }]
             }
         )
@@ -427,7 +428,8 @@ class StationMusicTest(TestCase):
                     'album_name'   : '방탄 앨범',
                     'lyrics'       : 'lyrics1',
                     'artist_id'    : [1],
-                    'artist_name'  : ['방탄소년단']
+                    'artist_name'  : ['방탄소년단'],
+                    'stream_url'   : '/stream/1'
                 }]
             }
         )
@@ -665,7 +667,8 @@ class AlbumMusicTest(TestCase):
                     'album_name'   : '방탄 앨범',
                     'lyrics'       : 'lyrics1',
                     'artist_id'    : [1],
-                    'artist_name'  : ['방탄소년단']
+                    'artist_name'  : ['방탄소년단'],
+                    'stream_url'   : '/stream/1'
                 }]
             }
         )

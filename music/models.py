@@ -15,7 +15,7 @@ class Album(models.Model):
     agency_name      = models.CharField(max_length = 200, null = True)
     is_regular       = models.BooleanField(default = False)
     genre            = models.ManyToManyField('Genre', through = 'GenreAlbum')
-    like_count       = models.IntegerField(null = True)
+    like_count       = models.IntegerField(null = True, default = 0)
 
     class Meta:
         db_table = 'albums'
@@ -37,7 +37,7 @@ class Music(models.Model):
     arranger         = models.CharField(max_length = 600, null = True)
     lyrics           = models.TextField(null = True)
     play_time        = models.TimeField(null = True)
-    like_count       = models.IntegerField(null = True)
+    like_count       = models.IntegerField(null = True, default = 0)
 
     class Meta:
         db_table = 'musics'
@@ -65,7 +65,8 @@ class Artist(models.Model):
     genre            = models.ManyToManyField('Genre', through = 'ArtistGenre')
     album            = models.ManyToManyField('Album', through = 'ArtistAlbum')
     music            = models.ManyToManyField('Music', through = 'ArtistMusic')
-    video            = models.ManyToManyField('Video', through = 'ArtistVideo')
+    video            = models.ManyToManyField('Video', through = 'ArtistVideo'),
+    like_count       = models.IntegerField(null = True, default = 0)
     similar_ralation = models.ManyToManyField('self', through = 'SimilarArtist', symmetrical = False)
 
     class Meta:

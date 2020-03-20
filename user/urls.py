@@ -1,4 +1,7 @@
-from .views import NaverSignInView, LikeAlbumView
+from .views import (
+    NaverSignInView,
+    LikeAlbumView
+)
 
 from django.urls import path
 
