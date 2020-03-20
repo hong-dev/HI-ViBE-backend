@@ -1075,7 +1075,7 @@ class MusicSearchTest(TestCase):
 
     def test_musicsearch_get_success(self):
         client = Client()
-        response = client.get('/music/search?query=la')
+        response = client.get('/music?query=la')
         self.assertEqual(response.json(),
             {   
                 "music_list" : [{
@@ -1106,3 +1106,231 @@ class MusicSearchTest(TestCase):
             }
         )
         self.assertEqual(response.status_code, 200)
+
+
+class DomesticRankingTest(TestCase):
+    def setUp(self):
+        client = Client()
+        Album.objects.create(
+            id                      = 1,
+            name                    = "album1",
+            image                   = "www.image1.com",
+            like_count              = 2
+        )
+
+        Album.objects.create(
+            id                      = 2,
+            name                    = "album2",
+            image                   = "www.image2.com",
+            like_count              = 1
+        )
+
+        Artist.objects.create(
+            id                      = 1,
+            name                    = "artist1",
+            nationality             = "한국"
+        )
+
+        Artist.objects.create(
+            id                      = 2,
+            name                    = "artist2",
+            nationality             = "한국"
+        )
+
+        ArtistAlbum.objects.create(
+            artist                  = Artist.objects.get(id = 1),
+            album                   = Album.objects.get(id = 1)
+        )
+
+        ArtistAlbum.objects.create(
+            artist                  = Artist.objects.get(id = 2),
+            album                   = Album.objects.get(id = 2)
+        )
+
+    def tearDown(self):
+        Artist.objects.all().delete()
+        Album.objects.all().delete()
+        ArtistAlbum.objects.all().delete()
+
+    def test_domesticranking_get_success(self):
+        client   = Client()
+        response = client.get('/music/domestic-album')        
+        self.assertEqual(response.json(),
+            {
+                "domestic_like_album_list" : [
+                    {
+                        "album_id"              :  1,
+                        "album_name"            :  "album1",
+                        "album_image"           :  "www.image1.com",
+                        "album_artist_name"     :  "artist1"
+                    },
+                    {
+                        "album_id"              : 2,
+                        "album_name"            : "album2",
+                        "album_image"           : "www.image2.com",
+                        "album_artist_name"     : "artist2"
+                    }
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+class ForeignRankingTest(TestCase):
+    def setUp(self):
+        client = Client()
+        Album.objects.create(
+            id                      = 1,
+            name                    = "album1",
+            image                   = "www.image1.com",
+            like_count              = 2
+        )
+
+        Album.objects.create(
+            id                      = 2,
+            name                    = "album2",
+            image                   = "www.image2.com",
+            like_count              = 1
+        )
+
+        Artist.objects.create(
+            id                      = 1,
+            name                    = "artist1",
+            nationality             = "미국"
+        )
+
+        Artist.objects.create(
+            id                      = 2,
+            name                    = "artist2",
+            nationality             = "미국"
+        )
+
+        ArtistAlbum.objects.create(
+            artist                  = Artist.objects.get(id = 1),
+            album                   = Album.objects.get(id = 1)
+        )
+
+        ArtistAlbum.objects.create(
+            artist                  = Artist.objects.get(id = 2),
+            album                   = Album.objects.get(id = 2)
+        )
+
+    def tearDown(self):
+        Artist.objects.all().delete()
+        Album.objects.all().delete()
+        ArtistAlbum.objects.all().delete()
+
+    def test_foreignranking_get_success(self):
+        client   = Client()
+        response = client.get('/music/foreign-album')        
+        self.assertEqual(response.json(),
+            {
+                "foreign_like_album_list" : [
+                    {
+                        "album_id"              :  1,
+                        "album_name"            :  "album1",
+                        "album_image"           :  "www.image1.com",
+                        "album_artist_name"     :  "artist1"
+                    },
+                    {
+                        "album_id"              : 2,
+                        "album_name"            : "album2",
+                        "album_image"           : "www.image2.com",
+                        "album_artist_name"     : "artist2"
+                    }
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+
+class VideoRankingTest(TestCase):
+    def setUp(self):
+        client = Client()
+        Video.objects.create(
+            id                      = 1,
+            name                    = "video1",
+            main_image              = "www.image1.com",
+            views                   = 2,
+            release_date            = "2010-10-10"
+        )
+
+        Video.objects.create(
+            id                      = 2,
+            name                    = "video2",
+            main_image              = "www.image2.com",
+            views                   = 1,
+            release_date            = "2010-10-09"
+        )
+
+        Artist.objects.create(
+            id                      = 1,
+            name                    = "artist1"            
+        )
+
+        Artist.objects.create(
+            id                      = 2,
+            name                    = "artist2"
+        )
+
+        ArtistVideo.objects.create(
+            artist                  = Artist.objects.get(id = 1),
+            video                   = Video.objects.get(id = 1)
+        )
+
+        ArtistVideo.objects.create(
+            artist                  = Artist.objects.get(id = 2),
+            video                   = Video.objects.get(id = 2)
+        )
+
+    def tearDown(self):
+        Video.objects.all().delete()
+        Artist.objects.all().delete()
+        ArtistVideo.objects.all().delete()
+
+    def test_videoranking_get_success(self):
+        client   = Client()
+        response = client.get('/music/video')        
+        self.assertEqual(response.json(),
+            {
+                "video_list" : [
+                    {
+                        "video_id"              :  1,
+                        "video_name"            :  "video1",
+                        "video_image"           :  "www.image1.com",
+                        "video_artist"          :  ["artist1"]
+                    },
+                    {
+                        "video_id"              : 2,
+                        "video_name"            : "video2",
+                        "video_image"           : "www.image2.com",
+                        "video_artist"          : ["artist2"]
+                    }
+                ]
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+
+class GenreTest(TestCase):
+    def setUp(self):
+        client = Client()
+        Genre.objects.create(
+            id                      = 1,
+            name                    = "장르1"
+        )
+
+    def tearDown(self):
+        Genre.objects.all().delete()
+
+    def test_genre_get_success(self):
+        client  = Client()
+        response = client.get('/music/genre')
+        self.assertEqual(response.json(),
+            {
+                "genre_list" : [
+                    {
+                        "id"            : 1,
+                        "name"          : "장르1"
+                    }
+                ]                
+            }
+        )
