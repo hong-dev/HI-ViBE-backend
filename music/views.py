@@ -15,6 +15,8 @@ from .models import (
 )
 
 from vibe.settings import MEDIA_URL
+from user.models   import User
+from user.utils    import check_login
 
 from django.views import View
 from django.http  import HttpResponse, JsonResponse, StreamingHttpResponse
@@ -45,6 +47,21 @@ class StationThemeView(View):
 
             return JsonResponse({"theme_details": theme_details,
                                  "theme_images" : theme_images}, status = 200)
+
+        except Theme.DoesNotExist:
+            return JsonResponse({"message": "THEME_DOES_NOT_EXIST"}, status = 400)
+
+class UserThemeView(View):
+    @check_login
+    def get(self, request, theme_id):
+        try:
+            theme = Theme.objects.get(id = theme_id)
+            if request.user:
+                request.user.theme_id = theme_id
+                request.user.save()
+                return HttpResponse(status = 200)
+
+            return HttpResponse(status = 200)
 
         except Theme.DoesNotExist:
             return JsonResponse({"message": "THEME_DOES_NOT_EXIST"}, status = 400)
