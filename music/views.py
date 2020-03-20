@@ -11,7 +11,8 @@ from .models import (
     Album,
     ArtistAlbum,
     Artist,
-    Video
+    Video,
+    Genre
 )
 
 from vibe.settings import MEDIA_URL
@@ -418,6 +419,58 @@ class MusicSearchView(View):
                     "lyrics_list"    : lyrics_list
                 }, status = 200)
 
+class DomesticRankingView(View):
+    def get(self, request):
+        limit   = request.GET.get('limit', 100)
+        country = request.GET.get('country', '한국')
 
+        albums = (
+            ArtistAlbum
+            .objects
+            .filter(artist__nationality__icontains=country)
+            .order_by('-album__like_count')[:limit]
+        )
 
-        
+        domestic_like_album_list = [{
+            'album_id'             : album.album.id,
+            'album_name'           : album.album.name,
+            'album_image'          : album.album.image,
+            'album_artist_name'    : album.artist.name
+        } for album in albums ]
+        return JsonResponse({"domestic_like_album_list": domestic_like_album_list}, status = 200)
+
+class ForeignRankingView(View):
+    def get(self, request):
+        limit   = request.GET.get('limit', 100)
+        country = request.GET.get('country', '한국')
+
+        albums = (
+            ArtistAlbum
+            .objects
+            .exclude(artist__nationality__icontains=country)
+            .order_by('-album__like_count')[:limit]
+        )
+
+        foreign_like_album_list = [{
+            'album_id'             : album.album.id,
+            'album_name'           : album.album.name,
+            'album_image'          : album.album.image,
+            'album_artist_name'    : album.artist.name
+        } for album in albums ]
+        return JsonResponse({"foreign_like_album_list": foreign_like_album_list}, status = 200)
+
+class VideoRankingView(View):
+    def get(self, request):
+        limit      = request.GET.get('limit', 50)
+
+        video_list = [{
+            'video_id'              : video.id,
+            'video_name'            : video.name,
+            'video_image'           : video.main_image,
+            'video_artist'          : list(video.artistvideo_set.values_list('artist__name', flat = True))
+            } for video in Video.objects.all().order_by('-views')[:limit] ]
+        return JsonResponse({"video_list": video_list}, status = 200)
+
+class GenreView(View):
+    def get(self, request):
+        return JsonResponse({"genre_list": list(Genre.objects.values())}, status = 200)
