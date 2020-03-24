@@ -15,6 +15,7 @@
 # Features
 
 # API Documentation
+[API Documentation using Postman](https://documenter.getpostman.com/view/10633619/SzS2xob4?version=latest)
 
 # Database Modeling
 ![Modeling using aquery](https://user-images.githubusercontent.com/53142539/76675121-89b7af00-65f9-11ea-9a5b-2c531b5d5b89.png)
