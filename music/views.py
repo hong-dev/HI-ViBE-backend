@@ -232,49 +232,6 @@ class ArtistMusicView(View):
         except IndexError:
             return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
 
-class StationMusicView(View):
-    def get(self, request, station_id):
-        try:
-            musics = Music.objects.filter(stationmusic__station_id = station_id)
-            station_details = list(musics
-                                   .values(
-                                       'station__name',
-                                       'station__description'))[0]
-
-            return JsonResponse({"station": station_details,
-                                 "music_list": get_music_list(musics)}, status = 200)
-
-        except IndexError:
-            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
-
-class AlbumMusicView(View):
-    def get(self, request, album_id):
-        try:
-            musics = Music.objects.filter(album_id = album_id).prefetch_related('artistmusic_set')
-            album_details = list(musics
-                                 .values(
-                                     'album__name',
-                                     'album__image',
-                                     'album__release_date',
-                                     'album__description',
-                                     'album__genre__name',
-                                     'artist__name'))[0]
-
-            return JsonResponse({"album_details": album_details,
-                                 "music_list": get_music_list(musics)}, status = 200)
-
-        except IndexError:
-            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
-
-class ArtistMusicView(View):
-    def get(self, request, artist_id):
-        try:
-            musics = Music.objects.filter(artistmusic__artist_id = artist_id)
-            return JsonResponse({"music_list": get_music_list(musics)}, status = 200)
-
-        except IndexError:
-            return JsonResponse({"message": "MUSIC_DOES_NOT_EXIST"}, status = 400)
-
 class AlbumListView(View):
     def get(self, request, artist_id):
         albums = Album.objects.prefetch_related('artistalbum_set').filter(artist__id = artist_id)
