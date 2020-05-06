@@ -48,8 +48,8 @@ class NaverSignInTest(TestCase):
 
     def test_user_signin_post_fail(self):
         client   = Client()
-        header   = {'No_Authorizaeion' : '1234'}
-        response = client.post('/user/naver_auth', content_type='application/json', **header)
+        header   = {'No_Authorization' : '1234'}
+        response = client.post('/user/naver_auth', content_type='applications/json', **header)
 
         self.assertEqual(response.status_code, 405)
 
